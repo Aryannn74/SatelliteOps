@@ -1,5 +1,5 @@
-
-import { useEffect, useState } from 'react'
+﻿
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -14,6 +14,7 @@ import {
   YAxis,
   CartesianGrid
 } from 'recharts'
+import { useAuth } from '../context/AuthContext'
 import '../App.css'
 
 const API_URL = 'http://localhost:8080/api/queue'
@@ -142,6 +143,9 @@ function TransmissionQueue() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // JWT authentication
+  const { authFetch } = useAuth()
+
   // Separate Queue and History sidebar views
   const searchParams = new URLSearchParams(location.search)
   const isHistoryView =
@@ -154,13 +158,13 @@ function TransmissionQueue() {
   const [transmittingId, setTransmittingId] = useState(null)
   const [scheduling, setScheduling] = useState(false)
 
-  // Retrieve queue records from Spring Boot
-  const fetchQueue = async () => {
+  // Retrieve queue records using JWT
+  const fetchQueue = useCallback(async () => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await authFetch(API_URL, {
         cache: 'no-store'
       })
 
@@ -170,16 +174,17 @@ function TransmissionQueue() {
 
       const data = await response.json()
       setQueue(data)
+
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }
+  }, [authFetch])
 
   useEffect(() => {
     fetchQueue()
-  }, [])
+  }, [fetchQueue])
 
   // Manually mark transmission as completed
   const markTransmitted = async (id) => {
@@ -190,7 +195,7 @@ function TransmissionQueue() {
     setMessage('')
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${API_URL}/${id}/transmit`,
         { method: 'PUT' }
       )
@@ -212,6 +217,7 @@ function TransmissionQueue() {
       setMessage(
         `${updatedItem.satelliteId} transmitted successfully!`
       )
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -228,7 +234,7 @@ function TransmissionQueue() {
     setMessage('')
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${API_URL}/transmit-next`,
         { method: 'POST' }
       )
@@ -262,6 +268,7 @@ function TransmissionQueue() {
       )
 
       await fetchQueue()
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -355,25 +362,25 @@ function TransmissionQueue() {
       label: 'Total Queue Items',
       value: queue.length,
       color: 'var(--theme-primary)',
-      icon: '📦'
+      icon: 'ðŸ“¦'
     },
     {
       label: 'Pending',
       value: pendingItems.length,
       color: '#d97706',
-      icon: '⏳'
+      icon: 'â³'
     },
     {
       label: 'Transmitted',
       value: transmittedItems.length,
       color: 'var(--theme-success)',
-      icon: '✓'
+      icon: 'âœ“'
     },
     {
       label: 'Completion Rate',
       value: `${completionRate}%`,
       color: 'var(--theme-text)',
-      icon: '📊'
+      icon: 'ðŸ“Š'
     }
   ]
 
@@ -428,7 +435,7 @@ function TransmissionQueue() {
           onClick={() => navigate('/')}
           style={styles.secondaryButton}
         >
-          ← Back to Dashboard
+          â† Back to Dashboard
         </button>
 
         <button
@@ -442,7 +449,7 @@ function TransmissionQueue() {
         >
           {loading
             ? 'Refreshing...'
-            : '↻ Refresh Data'}
+            : 'â†» Refresh Data'}
         </button>
 
         <button
@@ -1028,3 +1035,5 @@ function TransmissionQueue() {
 }
 
 export default TransmissionQueue
+
+

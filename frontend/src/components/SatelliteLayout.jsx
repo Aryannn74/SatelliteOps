@@ -1,6 +1,12 @@
 
 import { useEffect, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import {
+  Link,
+  Outlet,
+  useLocation,
+  useNavigate
+} from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './SatelliteLayout.css'
 
 const menuGroups = [
@@ -63,6 +69,10 @@ const menuGroups = [
 
 export default function SatelliteLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // JWT authentication
+  const { user, logout } = useAuth()
 
   // Light / Dark theme
   const [theme, setTheme] = useState(() => {
@@ -84,6 +94,12 @@ export default function SatelliteLayout() {
     setTheme((current) =>
       current === 'light' ? 'dark' : 'light'
     )
+  }
+
+  // JWT LOGOUT
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
   }
 
   // Custom active link detection
@@ -193,6 +209,81 @@ export default function SatelliteLayout() {
                 ? 'Switch to Dark Mode'
                 : 'Switch to Light Mode'}
             </span>
+          </button>
+        </div>
+
+        {/* USER ACCOUNT AND LOGOUT */}
+        <div
+          style={{
+            padding: '18px',
+            borderTop: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          <p
+            style={{
+              color: '#94a3b8',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              marginBottom: '12px'
+            }}
+          >
+            USER ACCOUNT
+          </p>
+
+          {user && (
+            <div
+              style={{
+                marginBottom: '14px',
+                overflowWrap: 'anywhere'
+              }}
+            >
+              <p
+                style={{
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  margin: '0 0 4px'
+                }}
+              >
+                {user.name || user.email || 'User'}
+              </p>
+
+              {user.name && user.email && (
+                <p
+                  style={{
+                    color: '#94a3b8',
+                    fontSize: '12px',
+                    margin: 0
+                  }}
+                >
+                  {user.email}
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              width: '100%',
+              padding: '11px 14px',
+              background: 'rgba(220,38,38,0.12)',
+              color: '#fca5a5',
+              border: '1px solid rgba(248,113,113,0.3)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              textAlign: 'left',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            <span>↪</span>
+            <span>Logout</span>
           </button>
         </div>
 

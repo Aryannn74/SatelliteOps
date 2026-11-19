@@ -1,6 +1,7 @@
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import '../App.css'
 
 const HISTORY_URL =
@@ -117,17 +118,20 @@ const styles = {
 function DecisionHistory() {
   const navigate = useNavigate()
 
+  // JWT authentication
+  const { authFetch } = useAuth()
+
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // FETCH DECISION HISTORY FROM SPRING BOOT
-  const fetchHistory = async () => {
+  // FETCH DECISION HISTORY WITH JWT
+  const fetchHistory = useCallback(async () => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(HISTORY_URL, {
+      const response = await authFetch(HISTORY_URL, {
         cache: 'no-store'
       })
 
@@ -145,16 +149,17 @@ function DecisionHistory() {
       )
 
       setHistory(sortedHistory)
+
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }
+  }, [authFetch])
 
   useEffect(() => {
     fetchHistory()
-  }, [])
+  }, [fetchHistory])
 
   // PRIORITY BADGE COLORS
   const getPriorityColor = (priority) => {

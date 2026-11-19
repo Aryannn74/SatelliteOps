@@ -1,0 +1,203 @@
+
+/* SatelliteOps Login Page */
+
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #0b1730, #142d4e, #1e4975);
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.login-page *,
+.login-page *::before,
+.login-page *::after {
+  box-sizing: border-box;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 430px;
+}
+
+/* Branding */
+
+.login-brand {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 28px;
+}
+
+.login-logo {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.login-brand h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.login-brand p {
+  font-size: 14px;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Login Card */
+
+.login-card {
+  background: #ffffff;
+  padding: 36px 32px;
+  border-radius: 16px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+}
+
+.login-card h2 {
+  text-align: center;
+  color: #142d4e;
+  font-size: 24px;
+  margin: 0 0 10px;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  margin: 0 0 30px;
+  line-height: 1.5;
+}
+
+/* Form Fields */
+
+.login-field {
+  margin-bottom: 22px;
+}
+
+.login-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 9px;
+}
+
+.login-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #142d4e;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.login-field input::placeholder {
+  color: #94a3b8;
+}
+
+/* Password Show / Hide */
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 70px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.password-toggle:hover {
+  color: #1d4ed8;
+}
+
+/* Error Message */
+
+.login-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Sign In Button */
+
+.login-submit {
+  width: 100%;
+  height: 48px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.login-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.login-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Footer */
+
+.login-footer {
+  text-align: center;
+  color: #cbd5e1;
+  font-size: 12px;
+  margin-top: 25px;
+}
+
+/* Mobile Responsive */
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 22px;
+  }
+
+  .login-brand h1 {
+    font-size: 27px;
+  }
+
+  .login-card h2 {
+    font-size: 22px;
+  }
+}

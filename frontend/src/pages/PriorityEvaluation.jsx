@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import '../App.css'
 
 const PRIORITY_URL = 'http://localhost:8080/api/priority'
@@ -123,13 +124,16 @@ function PriorityEvaluation() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // JWT authentication
+  const { authFetch } = useAuth()
+
   const satellite = location.state?.satellite
 
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Evaluate priority using Spring Boot API
+  // Evaluate priority using authenticated Spring Boot API
   const evaluatePriority = async () => {
     if (!satellite || loading || result) return
 
@@ -137,7 +141,7 @@ function PriorityEvaluation() {
     setError('')
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${PRIORITY_URL}/evaluate`,
         {
           method: 'POST',
@@ -159,6 +163,7 @@ function PriorityEvaluation() {
 
       const data = await response.json()
       setResult(data)
+
     } catch (err) {
       setError(err.message)
     } finally {

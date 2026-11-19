@@ -3,37 +3,91 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate
+  Navigate,
+  Outlet,
+  useLocation
 } from 'react-router-dom'
+
+import { AuthProvider, useAuth } from './context/AuthContext'
 
 import Dashboard from './pages/Dashboard'
 import PriorityEvaluation from './pages/PriorityEvaluation'
 import DecisionHistory from './pages/DecisionHistory'
 import TransmissionQueue from './pages/TransmissionQueue'
 
+import Login from './pages/Login'
+import Register from './pages/Register'
 import SatelliteLayout from './components/SatelliteLayout'
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
+// Protect dashboard routes using JWT authentication
+function ProtectedRoute() {
+  const { isAuthenticated } = useAuth()
+  const location = useLocation()
 
-        {/* Main layout with Navy Blue sidebar */}
+  // No JWT available: redirect to login
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    )
+  }
+
+  // JWT exists: allow access to protected pages
+  return <Outlet />
+}
+
+// Prevent logged-in users from returning to login/register
+function PublicRoute() {
+  const { isAuthenticated } = useAuth()
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return <Outlet />
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+
+      {/* Public Authentication Pages */}
+      <Route element={<PublicRoute />}>
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+      </Route>
+
+      {/* Protected SatelliteOps Pages */}
+      <Route element={<ProtectedRoute />}>
+
+        {/* Existing Sidebar and Layout */}
         <Route element={<SatelliteLayout />}>
 
-          {/* Dashboard overview only */}
+          {/* Dashboard Overview */}
           <Route
             path="/"
             element={<Dashboard view="overview" />}
           />
 
-          {/* Telemetry Management */}
+          {/* Satellite Telemetry */}
           <Route
             path="/telemetry"
             element={<Dashboard view="telemetry" />}
           />
 
-          {/* Intelligent Prioritization */}
+          {/* Priority Evaluation */}
           <Route
             path="/priority"
             element={<PriorityEvaluation />}
@@ -51,7 +105,7 @@ function App() {
             element={<TransmissionQueue />}
           />
 
-          {/* Reports and Analytics */}
+          {/* Analytics Dashboard */}
           <Route
             path="/analytics"
             element={<Dashboard view="analytics" />}
@@ -59,13 +113,24 @@ function App() {
 
         </Route>
 
-        {/* Redirect unknown URLs to Dashboard */}
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
+      </Route>
 
-      </Routes>
+      {/* Unknown URLs */}
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
+
+    </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

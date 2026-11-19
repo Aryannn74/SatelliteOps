@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
@@ -15,6 +15,7 @@ import {
   Legend
 } from 'recharts'
 
+import { useAuth } from '../context/AuthContext'
 import '../App.css'
 
 const API_URL = 'http://localhost:8080/api/telemetry'
@@ -53,13 +54,6 @@ const buttonStyle = {
   cursor: 'pointer'
 }
 
-const tooltipStyle = {
-  backgroundColor: 'var(--theme-card)',
-  color: 'var(--theme-text)',
-  border: '1px solid var(--theme-border)',
-  borderRadius: 8
-}
-
 const mutedStyle = {
   color: 'var(--theme-muted)'
 }
@@ -68,8 +62,18 @@ const headingStyle = {
   color: 'var(--theme-text)'
 }
 
+const tooltipStyle = {
+  backgroundColor: 'var(--theme-card)',
+  color: 'var(--theme-text)',
+  border: '1px solid var(--theme-border)',
+  borderRadius: 8
+}
+
 export default function Dashboard({ view = 'overview' }) {
   const navigate = useNavigate()
+
+  // JWT authentication
+  const { authFetch } = useAuth()
 
   const [telemetry, setTelemetry] = useState([])
   const [loading, setLoading] = useState(true)
@@ -81,13 +85,13 @@ export default function Dashboard({ view = 'overview' }) {
   const [addingToQueueId, setAddingToQueueId] = useState(null)
   const [form, setForm] = useState({ ...emptyForm })
 
-  // FETCH TELEMETRY
-  const refreshTelemetry = async () => {
+  // FETCH TELEMETRY WITH JWT
+  const refreshTelemetry = useCallback(async () => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await authFetch(API_URL, {
         cache: 'no-store'
       })
 
@@ -97,16 +101,17 @@ export default function Dashboard({ view = 'overview' }) {
 
       const data = await response.json()
       setTelemetry(data)
+
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }
+  }, [authFetch])
 
   useEffect(() => {
     refreshTelemetry()
-  }, [])
+  }, [refreshTelemetry])
 
   // FORM INPUT
   const handleChange = (e) => {
@@ -138,6 +143,7 @@ export default function Dashboard({ view = 'overview' }) {
     })
   }
 
+  // CANCEL EDIT
   const handleCancelEdit = () => {
     setEditingId(null)
     setForm({ ...emptyForm })
@@ -145,7 +151,7 @@ export default function Dashboard({ view = 'overview' }) {
     setMessage('')
   }
 
-  // ADD OR UPDATE TELEMETRY
+  // ADD OR UPDATE TELEMETRY WITH JWT
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -188,7 +194,7 @@ export default function Dashboard({ view = 'overview' }) {
     setSubmitting(true)
 
     try {
-      const response = await fetch(url, {
+      const response = await authFetch(url, {
         method: isEditing ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -227,6 +233,7 @@ export default function Dashboard({ view = 'overview' }) {
 
       setEditingId(null)
       setForm({ ...emptyForm })
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -234,7 +241,7 @@ export default function Dashboard({ view = 'overview' }) {
     }
   }
 
-  // DELETE TELEMETRY
+  // DELETE TELEMETRY WITH JWT
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
       'Are you sure you want to delete this telemetry record?'
@@ -247,7 +254,7 @@ export default function Dashboard({ view = 'overview' }) {
     setDeletingId(id)
 
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await authFetch(`${API_URL}/${id}`, {
         method: 'DELETE'
       })
 
@@ -265,6 +272,7 @@ export default function Dashboard({ view = 'overview' }) {
       }
 
       setMessage('Telemetry deleted successfully!')
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -272,7 +280,7 @@ export default function Dashboard({ view = 'overview' }) {
     }
   }
 
-  // PRIORITY EVALUATION
+  // NAVIGATE TO PRIORITY EVALUATION
   const evaluatePriority = (satellite) => {
     navigate('/priority', {
       state: {
@@ -286,7 +294,7 @@ export default function Dashboard({ view = 'overview' }) {
     })
   }
 
-  // ADD TO TRANSMISSION QUEUE
+  // ADD TO TRANSMISSION QUEUE WITH JWT
   const addToQueue = async (telemetryId) => {
     if (addingToQueueId !== null) return
 
@@ -295,7 +303,7 @@ export default function Dashboard({ view = 'overview' }) {
     setMessage('')
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${QUEUE_URL}/from-telemetry/${telemetryId}`,
         { method: 'POST' }
       )
@@ -323,6 +331,7 @@ export default function Dashboard({ view = 'overview' }) {
         `Score: ${queueItem.priorityScore}\n` +
         `Status: ${queueItem.status}`
       )
+
     } catch (err) {
       setError(err.message)
       window.alert(`Error: ${err.message}`)
@@ -336,27 +345,23 @@ export default function Dashboard({ view = 'overview' }) {
     telemetry.map((item) => item.satelliteId)
   ).size
 
-  const averageBattery =
-    telemetry.length > 0
-      ? (
-          telemetry.reduce(
-            (sum, item) =>
-              sum + Number(item.batteryLevel),
-            0
-          ) / telemetry.length
-        ).toFixed(1)
-      : '0.0'
+  const averageBattery = telemetry.length > 0
+    ? (
+        telemetry.reduce(
+          (sum, item) => sum + Number(item.batteryLevel),
+          0
+        ) / telemetry.length
+      ).toFixed(1)
+    : '0.0'
 
-  const averageLink =
-    telemetry.length > 0
-      ? (
-          telemetry.reduce(
-            (sum, item) =>
-              sum + Number(item.linkQuality),
-            0
-          ) / telemetry.length
-        ).toFixed(1)
-      : '0.0'
+  const averageLink = telemetry.length > 0
+    ? (
+        telemetry.reduce(
+          (sum, item) => sum + Number(item.linkQuality),
+          0
+        ) / telemetry.length
+      ).toFixed(1)
+    : '0.0'
 
   // ANALYTICS DATA
   const satelliteData = telemetry.map((item) => ({
@@ -439,6 +444,7 @@ export default function Dashboard({ view = 'overview' }) {
         color: 'var(--theme-text)'
       }}
     >
+
       {/* PAGE HEADER */}
       <header
         style={{
@@ -505,9 +511,7 @@ export default function Dashboard({ view = 'overview' }) {
               disabled={loading}
               style={buttonStyle}
             >
-              {loading
-                ? 'Refreshing...'
-                : 'Refresh Telemetry'}
+              {loading ? 'Refreshing...' : 'Refresh Telemetry'}
             </button>
 
             <button
@@ -597,9 +601,7 @@ export default function Dashboard({ view = 'overview' }) {
             }}
           >
             <h2 style={headingStyle}>
-              {editingId
-                ? 'Edit Telemetry'
-                : 'Add New Telemetry'}
+              {editingId ? 'Edit Telemetry' : 'Add New Telemetry'}
             </h2>
 
             <form
@@ -875,6 +877,7 @@ export default function Dashboard({ view = 'overview' }) {
                 marginTop: 20
               }}
             >
+
               {/* BATTERY CHART */}
               <div style={cardStyle}>
                 <h3 style={headingStyle}>
@@ -1049,10 +1052,12 @@ export default function Dashboard({ view = 'overview' }) {
                   </ResponsiveContainer>
                 </div>
               </div>
+
             </div>
           )}
         </section>
       )}
+
     </div>
   )
 }
